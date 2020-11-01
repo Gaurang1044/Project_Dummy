@@ -709,7 +709,7 @@ class FaceAging(object):
             print("\tSUCCESS ^_^")
 
         num_samples = int(np.sqrt(self.size_batch))
-         file_names =glob(os.path.join('./test', '*.jpg')) #glob(testing_samples_dir)
+        file_names =glob(os.path.join('./test', '*.jpg')) #glob(testing_samples_dir)
         if len(file_names) < num_samples:
             print 'The number of testing images is must larger than %d' % num_samples
             exit(0)
