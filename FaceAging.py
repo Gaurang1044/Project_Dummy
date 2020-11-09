@@ -19,6 +19,7 @@ from scipy.io import savemat
 from ops import *
 
 
+import matplotlib.pyplot as plt
 
 class FaceAging(object):
     def __init__(self,
@@ -76,7 +77,7 @@ class FaceAging(object):
             name='z_prior'
         )
         # ************************************* build the graph *******************************************************
-        print '\n\tBuilding graph ...'
+        print ('\n\tBuilding graph ...')
 
         # encoder: input image --> z
         self.z = self.encoder(
@@ -248,17 +249,17 @@ class FaceAging(object):
 
         # *********************************** tensorboard *************************************************************
         # for visualization (TensorBoard): $ tensorboard --logdir path/to/log-directory
-        # self.EG_learning_rate_summary = tf.summary.scalar('EG_learning_rate', EG_learning_rate)
-        # self.summary = tf.compat.v1.summary.merge([
-        #     self.z_summary, self.z_prior_summary,
-        #     self.D_z_loss_z_summary, self.D_z_loss_prior_summary,
-        #     self.D_z_logits_summary, self.D_z_prior_logits_summary,
-        #     self.EG_loss_summary, self.E_z_loss_summary,
-        #     self.D_img_loss_input_summary, self.D_img_loss_G_summary,
-        #     self.G_img_loss_summary, self.EG_learning_rate_summary,
-        #     self.D_G_logits_summary, self.D_input_logits_summary
-        # ])
-        # self.writer = tf.summary.FileWriter(os.path.join(self.save_dir, 'summary'), self.session.graph)
+        self.EG_learning_rate_summary = tf.summary.scalar('EG_learning_rate', EG_learning_rate)
+        self.summary = tf.compat.v1.summary.merge([
+            self.z_summary, self.z_prior_summary,
+            self.D_z_loss_z_summary, self.D_z_loss_prior_summary,
+            self.D_z_logits_summary, self.D_z_prior_logits_summary,
+            self.EG_loss_summary, self.E_z_loss_summary,
+            self.D_img_loss_input_summary, self.D_img_loss_G_summary,
+            self.G_img_loss_summary, self.EG_learning_rate_summary,
+            self.D_G_logits_summary, self.D_input_logits_summary
+        ])
+        self.writer = tf.summary.FileWriter(os.path.join(self.save_dir, 'summary'), self.session.graph)
 
         # ************* get some random samples as testing data to visualize the learning process *********************
         sample_files = file_names[0:self.size_batch]
@@ -282,6 +283,7 @@ class FaceAging(object):
             dtype=np.float32
         ) * self.image_value_range[0]
         for i, label in enumerate(sample_files):
+#  TO CHANGE: 
             label = int(str(sample_files[i]).split('/')[-1].split('_')[0])
             if 0 <= label <= 5:
                 label = 0
@@ -304,6 +306,7 @@ class FaceAging(object):
             else:
                 label = 9
             sample_label_age[i, label] = self.image_value_range[-1]
+#  TO CHANGE:
             gender = int(str(sample_files[i]).split('/')[-1].split('_')[1])
             sample_label_gender[i, gender] = self.image_value_range[-1]
 
@@ -356,6 +359,7 @@ class FaceAging(object):
                     dtype=np.float
                 ) * self.image_value_range[0]
                 for i, label in enumerate(batch_files):
+#  TO CHANGE:
                     label = int(str(batch_files[i]).split('/')[-1].split('_')[0])
                     if 0 <= label <= 5:
                         label = 0
@@ -378,6 +382,7 @@ class FaceAging(object):
                     else:
                         label = 9
                     batch_label_age[i, label] = self.image_value_range[-1]
+             #  TO CHANGE:
                     gender = int(str(batch_files[i]).split('/')[-1].split('_')[1])
                     batch_label_gender[i, gender] = self.image_value_range[-1]
 
@@ -421,17 +426,17 @@ class FaceAging(object):
                 time_left = ((num_epochs - epoch - 1) * num_batches + (num_batches - ind_batch - 1)) * elapse
                 print("\tTime left: %02d:%02d:%02d" %
                       (int(time_left / 3600), int(time_left % 3600 / 60), time_left % 60))
-
+#  TO CHANGE:
                 # add to summary
-                # summary = self.summary.eval(
-                #     feed_dict={
-                #         self.input_image: batch_images,
-                #         self.age: batch_label_age,
-                #         self.gender: batch_label_gender,
-                #         self.z_prior: batch_z_prior
-                #     }
-                # )
-                # self.writer.add_summary(summary, self.EG_global_step.eval())
+                summary = self.summary.eval(
+                    feed_dict={
+                        self.input_image: batch_images,
+                        self.age: batch_label_age,
+                        self.gender: batch_label_gender,
+                        self.z_prior: batch_z_prior
+                    }
+                )
+                self.writer.add_summary(summary, self.EG_global_step.eval())
 
             # save sample images for each epoch
             name = '{:02d}.png'.format(epoch+1)
@@ -444,6 +449,7 @@ class FaceAging(object):
 
         # save the trained model
         self.save_checkpoint()
+      #  TO CHANGE:
         # close the summary writer
         self.writer.close()
 
@@ -667,8 +673,11 @@ class FaceAging(object):
         test_dir = os.path.join(self.save_dir, 'test')
         if not os.path.exists(test_dir):
             os.makedirs(test_dir)
+        #  TO CHANGE:
         images = images[:int(np.sqrt(self.size_batch)), :, :, :]
+        
         gender = gender[:int(np.sqrt(self.size_batch)), :]
+        
         size_sample = images.shape[0]
         labels = np.arange(size_sample)
         labels = np.repeat(labels, size_sample)
@@ -679,6 +688,10 @@ class FaceAging(object):
         for i in range(query_labels.shape[0]):
             query_labels[i, labels[i]] = self.image_value_range[-1]
         query_images = np.tile(images, [self.num_categories, 1, 1, 1])
+        print("hello")
+        # print(query_images)
+      
+        
         query_gender = np.tile(gender, [self.num_categories, 1])
         z, G = self.session.run(
             [self.z, self.G],
@@ -688,6 +701,7 @@ class FaceAging(object):
                 self.gender: query_gender
             }
         )
+        
         save_batch_images(
             batch_images=query_images,
             save_path=os.path.join(test_dir, 'input.png'),
@@ -711,7 +725,7 @@ class FaceAging(object):
         num_samples = int(np.sqrt(self.size_batch))
         file_names =glob(os.path.join('./test', '*.jpg')) #glob(testing_samples_dir)
         if len(file_names) < num_samples:
-            print 'The number of testing images is must larger than %d' % num_samples
+            print ('The number of testing images is must larger than %d' % num_samples)
             exit(0)
         sample_files = file_names[0:num_samples]
         sample = [load_image(
@@ -724,6 +738,9 @@ class FaceAging(object):
             images = np.array(sample).astype(np.float32)[:, :, :, None]
         else:
             images = np.array(sample).astype(np.float32)
+        # for img in images:
+        #     plt.imshow(img)
+        #     plt.show()
         gender_male = np.ones(
             shape=(num_samples, 2),
             dtype=np.float32
@@ -739,6 +756,6 @@ class FaceAging(object):
         self.test(images, gender_male, 'test_as_male.png')
         self.test(images, gender_female, 'test_as_female.png')
 
-        print '\n\tDone! Results are saved as %s\n' % os.path.join(self.save_dir, 'test', 'test_as_xxx.png')
+        print ('\n\tDone! Results are saved as %s\n' % os.path.join(self.save_dir, 'test', 'test_as_xxx.png'))
 
 

@@ -2,6 +2,7 @@ from __future__ import division
 import tensorflow as tf
 import numpy as np
 from scipy.misc import imread, imresize, imsave
+import matplotlib.pyplot as plt
 
 
 def conv2d(input_map, num_output_channels, size_kernel=5, stride=2, name='conv2d'):
@@ -106,6 +107,9 @@ def save_batch_images(
 ):
     # transform the pixcel value to 0~1
     images = (batch_images - image_value_range[0]) / (image_value_range[-1] - image_value_range[0])
+    # for img in images:
+    #         plt.imshow(img)
+    #         plt.show()
     if size_frame is None:
         auto_size = int(np.ceil(np.sqrt(images.shape[0])))
         size_frame = [auto_size, auto_size]
@@ -114,8 +118,12 @@ def save_batch_images(
     for ind, image in enumerate(images):
         ind_col = ind % size_frame[1]
         ind_row = ind // size_frame[1]
+        #  for img in query_images:
+       
         frame[(ind_row * img_h):(ind_row * img_h + img_h), (ind_col * img_w):(ind_col * img_w + img_w), :] = image
     imsave(save_path, frame)
+    # plt.imshow(frame)
+    # plt.show()
 
 
 
